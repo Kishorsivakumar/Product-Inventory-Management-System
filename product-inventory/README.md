@@ -29,7 +29,6 @@ docker compose up -d
 
 # 2. Backend (http://localhost:8080)
 cd backend
-cp .env.example .env        # optional; defaults match docker-compose
 go mod tidy
 go run ./cmd/server
 
