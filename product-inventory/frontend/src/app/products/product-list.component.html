@@ -1,0 +1,115 @@
+@if (error()) { <div class="alert error" role="alert">{{ error() }}</div> }
+@if (notice()) { <div class="alert success" role="status">{{ notice() }}</div> }
+
+<div class="searchbar">
+  <input type="search" placeholder="Search by product name or SKU" aria-label="Search by name or SKU"
+         [(ngModel)]="search" (ngModelChange)="onSearchInput()" />
+  <button class="search-btn" type="button" (click)="load()" aria-label="Search">Search</button>
+</div>
+
+<div class="shop">
+  <aside class="sidebar" aria-label="Filters">
+    <h2>Category</h2>
+    <ul class="facet">
+      <li><button type="button" [class.on]="categoryId === null" (click)="setCategory(null)">All categories</button></li>
+      @for (c of categories(); track c.id) {
+        <li><button type="button" [class.on]="categoryId === c.id" (click)="setCategory(c.id)">{{ c.name }}</button></li>
+      }
+    </ul>
+
+    <h2>Status</h2>
+    <ul class="facet">
+      <li><button type="button" [class.on]="status === ''" (click)="setStatus('')">All statuses</button></li>
+      <li><button type="button" [class.on]="status === 'active'" (click)="setStatus('active')">Active</button></li>
+      <li><button type="button" [class.on]="status === 'inactive'" (click)="setStatus('inactive')">Inactive</button></li>
+      <li><button type="button" [class.on]="status === 'discontinued'" (click)="setStatus('discontinued')">Discontinued</button></li>
+    </ul>
+
+    <button class="btn ghost small" type="button" (click)="clearFilters()" [disabled]="!hasFilters">Clear filters</button>
+  </aside>
+
+  <section class="results" aria-live="polite">
+    <div class="results-head">
+      <h1>{{ categoryName || 'All products' }}</h1>
+      @if (!loading()) { <span class="count">{{ products().length }} {{ products().length === 1 ? 'result' : 'results' }}</span> }
+    </div>
+
+    @if (loading()) {
+      <div class="empty">Loading products…</div>
+    } @else if (products().length === 0) {
+      <div class="empty card">
+        @if (hasFilters) { No products match these filters. } @else { No products yet. Add your first product to start tracking stock. }
+      </div>
+    } @else {
+      <div class="grid">
+        @for (p of products(); track p.id) {
+          <article class="product" [class.is-low]="p.low_stock">
+            <div class="thumb">
+              <img [src]="imgSrc(p.category)" [alt]="p.category + ' category image'" loading="lazy"
+                   (error)="onImgError($event, p.category)" />
+              @if (p.status !== 'active') { <span class="ribbon" [class]="'ribbon ' + p.status">{{ p.status }}</span> }
+            </div>
+            <div class="info">
+              <span class="cat">{{ p.category }}</span>
+              <h3 class="title" [title]="p.name">{{ p.name }}</h3>
+              <span class="sku">SKU: {{ p.sku }}</span>
+              <div class="price">{{ p.price | currency: 'INR' : 'symbol' : '1.2-2' }}</div>
+              <div class="stock" [class.low]="p.low_stock && p.quantity > 0" [class.out]="p.quantity === 0">
+                {{ stockLabel(p) }}
+              </div>
+            </div>
+            <div class="card-actions">
+              <button class="buy" type="button" (click)="openStock(p)">Update stock</button>
+              <div class="secondary">
+                <a class="btn ghost small" [routerLink]="['/products', p.id, 'edit']">Edit</a>
+                <button class="btn link-danger small" type="button" (click)="askDelete(p)">Delete</button>
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </section>
+</div>
+
+@if (stockTarget(); as p) {
+  <div class="modal-backdrop" (click)="stockTarget.set(null)">
+    <div class="card modal" role="dialog" aria-modal="true" aria-labelledby="stock-title" (click)="$event.stopPropagation()">
+      <h2 id="stock-title">Update stock</h2>
+      <p>{{ p.name }} · currently {{ p.quantity }} in stock</p>
+      @if (stockError()) { <div class="alert error" role="alert">{{ stockError() }}</div> }
+      <div class="field">
+        <label for="stock-mode">Action</label>
+        <select id="stock-mode" [(ngModel)]="stockMode">
+          <option value="add">Add stock</option>
+          <option value="remove">Remove stock</option>
+          <option value="set">Set exact quantity</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="stock-qty">Quantity</label>
+        <input id="stock-qty" type="number" min="0" step="1" [(ngModel)]="stockQty"
+               (ngModelChange)="stockTouched = true; stockError.set('')"
+               [class.invalid]="stockTouched && stockQtyMessage" />
+        @if (stockTouched && stockQtyMessage) { <div class="field-error">{{ stockQtyMessage }}</div> }
+      </div>
+      <div class="form-actions">
+        <button class="btn" type="button" (click)="saveStock()" [disabled]="stockSaving() || !!stockQtyMessage">Save stock</button>
+        <button class="btn ghost" type="button" (click)="stockTarget.set(null)">Cancel</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (toDelete(); as p) {
+  <div class="modal-backdrop" (click)="toDelete.set(null)">
+    <div class="card modal" role="alertdialog" aria-modal="true" aria-labelledby="del-title" (click)="$event.stopPropagation()">
+      <h2 id="del-title">Delete {{ p.name }}?</h2>
+      <p>This removes the product permanently and can't be undone.</p>
+      <div class="form-actions">
+        <button class="btn danger" type="button" (click)="confirmDelete()" [disabled]="deleting()">Delete product</button>
+        <button class="btn ghost" type="button" (click)="toDelete.set(null)">Keep product</button>
+      </div>
+    </div>
+  </div>
+}

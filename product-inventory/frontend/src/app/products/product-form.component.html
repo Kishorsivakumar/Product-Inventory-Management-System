@@ -1,0 +1,61 @@
+<div class="head">
+  <h1>{{ isEdit ? 'Edit product' : 'Add product' }}</h1>
+</div>
+
+@if (error()) { <div class="alert error" role="alert">{{ error() }}</div> }
+
+@if (loading()) {
+  <div class="empty">Loading product…</div>
+} @else {
+  <form class="card form-card" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <div class="form-grid">
+      <div class="field full">
+        <label for="name">Product name</label>
+        <input id="name" formControlName="name" [class.invalid]="invalid('name')" />
+        @if (fieldError('name')) { <div class="field-error">{{ fieldError('name') }}</div> }
+      </div>
+
+      <div class="field">
+        <label for="sku">SKU</label>
+        <input id="sku" formControlName="sku" [class.invalid]="invalid('sku')" />
+        @if (fieldError('sku')) { <div class="field-error">{{ fieldError('sku') }}</div> }
+      </div>
+
+      <div class="field">
+        <label for="category">Category</label>
+        <select id="category" formControlName="category_id" [class.invalid]="invalid('category_id')">
+          <option [ngValue]="0" disabled>Select a category</option>
+          @for (c of categories(); track c.id) { <option [ngValue]="c.id">{{ c.name }}</option> }
+        </select>
+        @if (fieldError('category_id')) { <div class="field-error">{{ fieldError('category_id') }}</div> }
+      </div>
+
+      <div class="field">
+        <label for="price">Price (₹)</label>
+        <input id="price" type="number" step="0.01" min="0" formControlName="price" [class.invalid]="invalid('price')" />
+        @if (fieldError('price')) { <div class="field-error">{{ fieldError('price') }}</div> }
+      </div>
+
+      <div class="field">
+        <label for="quantity">Quantity in stock</label>
+        <input id="quantity" type="number" step="1" min="0" formControlName="quantity" [class.invalid]="invalid('quantity')" />
+        @if (fieldError('quantity')) { <div class="field-error">{{ fieldError('quantity') }}</div> }
+      </div>
+
+      <div class="field full">
+        <label for="status">Status</label>
+        <select id="status" formControlName="status">
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+          <option value="discontinued">Discontinued</option>
+        </select>
+        @if (fieldError('status')) { <div class="field-error">{{ fieldError('status') }}</div> }
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn" type="submit" [disabled]="saving()">{{ isEdit ? 'Save changes' : 'Add product' }}</button>
+      <a class="btn ghost" routerLink="/products">Cancel</a>
+    </div>
+  </form>
+}

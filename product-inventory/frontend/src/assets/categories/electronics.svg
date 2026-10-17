@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="electronics">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2c5364"/><stop offset="1" stop-color="#0f2027"/></linearGradient></defs>
+  <rect width="400" height="300" fill="url(#g)"/>
+  <g fill="none" stroke="#ffffff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" opacity=".92"><rect x="110" y="80" width="180" height="116" rx="10"/><path d="M165 224h70M200 196v28"/></g>
+</svg>
